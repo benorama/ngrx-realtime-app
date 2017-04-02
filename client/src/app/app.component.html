@@ -1,0 +1,55 @@
+<div class="site-wrapper">
+
+    <div class="site-wrapper-inner">
+
+        <div class="cover-container">
+
+            <div class="masthead clearfix">
+                <div class="inner">
+                    <h3 class="masthead-brand">
+                        Ngrx/Angular Realtime App
+                    </h3>
+                    <p class="nav nav-masthead">
+                        <span class="user-name">{{(user$ | async)?.name}}</span>
+                        <span class="connected-status" [ngClass]="{'online': (user$ | async)?.connected, 'offline': !(user$ | async)?.connected}"></span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="inner cover">
+
+                <div *ngIf="!(user$ | async)?.authenticated">
+                    <input name="userName" #userName
+                           (keyup.enter)="login(userName.value)"/>
+                    <button
+                            (click)="login(userName.value)" class="btn btn-primary">Login</button>
+                </div>
+                <div *ngIf="(user$ | async).authenticated">
+                    <h4>
+                        Counter example
+                    </h4>
+                    <h1>
+                        {{(counter$ | async)?.total}}
+                    </h1>
+                    <p>
+                        <button (click)="increment()" class="btn btn-primary">+1</button>
+                        <button (click)="decrement()" class="btn btn-primary">-1</button>
+                    </p>
+                    <p>
+                        <button (click)="reset()" class="btn btn-secondary btn-sm">Reset</button>
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="mastfoot">
+                <div class="inner">
+                    <p>Cover template for <a href="https://getbootstrap.com">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

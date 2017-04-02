@@ -1,0 +1,35 @@
+plugins {
+    id 'groovy'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+repositories {
+    jcenter()
+    maven {
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+}
+
+ext.vertxVersion = '3.3.0'
+version = '1.0.0'
+
+dependencies {
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-lang-groovy:$vertxVersion"
+    compile "io.vertx:vertx-web:$vertxVersion"
+}
+
+processResources {
+    from 'src/main/groovy'
+}
+
+shadowJar {
+    classifier = 'fat'
+    manifest {
+        attributes 'Main-Class': 'io.vertx.core.Launcher'
+        attributes 'Main-Verticle': 'CounterVerticle.groovy'
+    }
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+}
