@@ -1,6 +1,6 @@
 import {Action} from "@ngrx/store";
 
-export abstract class LiveAction implements Action {
+export abstract class RemoteAction implements Action {
 
     payload: any = null;
     publishedByUser: string;

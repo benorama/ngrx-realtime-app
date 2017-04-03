@@ -7,7 +7,7 @@ import {AppState} from './app.state';
 import * as CounterActions from './counter/counter.actions';
 import * as UserActions from "./user/user.actions";
 import {EventBusService} from './shared/event-bus.service';
-import {LiveAction} from "./shared/live-action.model";
+import {RemoteAction} from "./shared/remote-action.model";
 import {environment} from "../environments/environment";
 
 @Injectable()
@@ -81,7 +81,7 @@ export class AppEventBusService {
      *
      * @param action
      */
-    publishAction(action: LiveAction) {
+    publishAction(action: RemoteAction) {
         if (!this.enabled) return;
         if (action.publishedByUser) {
             console.error("This action has already been published", action);
@@ -110,8 +110,8 @@ export class AppEventBusService {
                 // Ignore action sent by current manager
                 return;
             }
-            let liveAction = message.body;
-            this.store.dispatch(liveAction);
+            let remoteAction = message.body;
+            this.store.dispatch(remoteAction);
         });
     }
 

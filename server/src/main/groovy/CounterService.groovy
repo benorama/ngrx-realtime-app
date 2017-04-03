@@ -2,7 +2,7 @@ class CounterService {
 
     static INCREMENT = '[Counter] Increment'
     static DECREMENT = '[Counter] Decrement'
-    static RESET = '[Counter] ResetSucess'
+    static RESET = '[Counter] Reset'
 
     int total = 0
 

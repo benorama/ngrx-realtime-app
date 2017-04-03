@@ -3,14 +3,14 @@
 
 This is a proof of concept that demonstrates the ability to build a realtime app with an [Angular](https://angular.io) web client (powered by a [Ngrx](http://ngrx.github.io) data architecture) and a [Vert.x](http://vertx.io) server.
 
-Please check the Medium article (coming soon) for more info.
+Please check the Medium article [Building a realtime web app with Angular/Ngrx and Vert.x](https://medium.com/@benorama/building-a-realtime-web-app-with-angular-ngrx-and-vert-x-a5381c0397a1) for more info.
 
 **Goals**
 
 * share and synchronize a common (Ngrx-based) state between multiple connected clients,
 * distribute in realtime (Ngrx-based) actions across multiple connected clients (which impact local states/reducers).
 
-Note: [@ngrx/store](https://github.com/ngrx/store) is a RxJS powered state management inspired by Redux for Angular apps. 
+Note: [@ngrx/store](https://github.com/ngrx/store) is a RxJS powered state management inspired by Redux for Angular apps.
 It's currently the most popular way to structure complex business logic in Angular apps.
 
 **Demo**
@@ -33,7 +33,7 @@ Prerequisites:
 
 ### Vertx server app
 
-First, compile and run Vertx app locally. 
+First, compile and run Vertx app locally.
 
 ```
 # Go into core module directory
@@ -62,7 +62,7 @@ ng serve
 ```
 
 To test the app:
-* open the client app in two separate browser windows, 
+* open the client app in two separate browser windows,
 * login with 2 different user names,
 * increment/decrement/reset counter
 

@@ -8,7 +8,7 @@ import 'rxjs/add/operator/startWith';
 import 'rxjs/add/observable/of';
 import {AppEventBusService} from "./app.event-bus.service";
 import {UserActionTypes} from './user/user.actions';
-import {LiveAction} from "./shared/live-action.model";
+import {RemoteAction} from "./shared/remote-action.model";
 
 @Injectable()
 export class AppEventBusEffects {
@@ -17,10 +17,10 @@ export class AppEventBusEffects {
                 private appEventBusService: AppEventBusService) {
     }
 
-    // Listen to all actions and publish live actions to account event bus
-    @Effect({dispatch: false}) liveAction$ = this.actions$
-        .filter(action => action instanceof LiveAction && action.publishedByUser == undefined)
-        .do((action: LiveAction) => {
+    // Listen to all actions and publish remote actions to account event bus
+    @Effect({dispatch: false}) remoteAction$ = this.actions$
+        .filter(action => action instanceof RemoteAction && action.publishedByUser == undefined)
+        .do((action: RemoteAction) => {
             this.appEventBusService.publishAction(action);
         });
 

@@ -1,5 +1,5 @@
 import {Action} from '@ngrx/store';
-import {LiveAction} from "../shared/live-action.model";
+import {RemoteAction} from "../shared/remote-action.model";
 
 const COUNTER_ACTIONS_EVENT_BUS_ADDRESS: string = 'counter::actions';
 
@@ -9,7 +9,7 @@ export const CounterActionTypes = {
     RESET: '[Counter] Reset'
 };
 
-export class IncrementAction extends LiveAction {
+export class IncrementAction extends RemoteAction {
     payload: any = null;
     type = CounterActionTypes.INCREMENT;
     constructor() {
@@ -17,7 +17,7 @@ export class IncrementAction extends LiveAction {
     }
 }
 
-export class DecrementAction extends LiveAction {
+export class DecrementAction extends RemoteAction {
     payload: any = null;
     type = CounterActionTypes.DECREMENT;
     constructor() {
@@ -25,7 +25,7 @@ export class DecrementAction extends LiveAction {
     }
 }
 
-export class ResetAction extends LiveAction {
+export class ResetAction extends RemoteAction {
     payload: any = null;
     type = CounterActionTypes.RESET;
     constructor() {
