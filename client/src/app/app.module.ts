@@ -1,7 +1,6 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {StoreModule} from '@ngrx/store';
-import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {EffectsModule} from '@ngrx/effects';
 
 import {reducer} from './app.reducer';
@@ -20,7 +19,6 @@ import {EventBusService} from "./shared/event-bus.service";
     imports: [
         BrowserModule,
         StoreModule.provideStore(reducer),
-        StoreDevtoolsModule.instrumentOnlyWithExtension(),
         EffectsModule.runAfterBootstrap(AppEventBusEffects)
     ],
     providers: [
