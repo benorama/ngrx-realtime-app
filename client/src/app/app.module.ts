@@ -1,13 +1,15 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
-import {StoreModule} from '@ngrx/store';
 import {EffectsModule} from '@ngrx/effects';
+import {StoreModule} from '@ngrx/store';
+import {StoreDevtoolsModule} from '@ngrx/store-devtools';
+import {environment} from '../environments/environment';
 
-import {reducer} from './app.reducer';
+import {reducers} from './app.reducer';
 import {AppComponent} from './app.component';
 import {AppEventBusEffects} from './app.event-bus.effects';
-import {AppEventBusService} from "./app.event-bus.service";
-import {EventBusService} from "./shared/event-bus.service";
+import {AppEventBusService} from './app.event-bus.service';
+import {EventBusService} from './shared/event-bus.service';
 
 @NgModule({
     bootstrap: [
@@ -18,8 +20,9 @@ import {EventBusService} from "./shared/event-bus.service";
     ],
     imports: [
         BrowserModule,
-        StoreModule.provideStore(reducer),
-        EffectsModule.runAfterBootstrap(AppEventBusEffects)
+        StoreModule.forRoot(reducers),
+        EffectsModule.forRoot([AppEventBusEffects]),
+        !environment.production ? StoreDevtoolsModule.instrument({maxAge: 25}) : []
     ],
     providers: [
         EventBusService, // Should be first, since AppEventBusService depends on it
