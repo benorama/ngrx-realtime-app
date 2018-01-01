@@ -1,9 +1,9 @@
-import io.vertx.ext.web.handler.sockjs.BridgeEventType
-import io.vertx.groovy.core.eventbus.EventBus
-import io.vertx.groovy.core.eventbus.Message
-import io.vertx.groovy.ext.web.Router
-import io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent
-import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
+import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.Message
+import io.vertx.ext.bridge.BridgeEventType
+import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.sockjs.BridgeEvent
+import io.vertx.ext.web.handler.sockjs.SockJSHandler
 
 // Create counter service singleton
 CounterService counterService = new CounterService()
@@ -22,7 +22,7 @@ Map options = [
 // Create the event bus bridge and add it to the router.
 SockJSHandler sockJSHandler = SockJSHandler.create(vertx)
 sockJSHandler.bridge(options, { BridgeEvent event ->
-    Map message = event.rawMessage()
+    Map message = event.rawMessage
     println "Bridge event: ${event.type()} ${message}"
     if (event.type() == BridgeEventType.PUBLISH) {
         println event

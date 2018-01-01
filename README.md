@@ -44,7 +44,7 @@ cd ngrx-realtime-app/server
 # Or gradle shadowJar if you have Gradle installed locally
 
 # Run the server app locally
-java -jar build/libs/server-1.0.0-fat.jar
+java -jar build/libs/server-1.0.1-fat.jar
 ```
 
 ### Angular client app
