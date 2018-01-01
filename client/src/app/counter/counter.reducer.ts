@@ -1,24 +1,20 @@
-import '@ngrx/core/add/operator/select';
-import 'rxjs/add/operator/map';
-import {Action} from '@ngrx/store';
-import {Observable} from 'rxjs/Observable';
 import {CounterActions, CounterActionTypes} from './counter.actions';
 import {initialCounterState, CounterState} from './counter.state';
 
 export function counterReducer(state = initialCounterState, action: CounterActions): CounterState {
     switch (action.type) {
 
-        case CounterActionTypes.INCREMENT:
+        case CounterActionTypes.Increment:
             return Object.assign({}, state, {
                 total: state.total + 1
             });
 
-        case CounterActionTypes.DECREMENT:
+        case CounterActionTypes.Decrement:
             return Object.assign({}, state, {
                 total: state.total - 1
             });
 
-        case CounterActionTypes.RESET:
+        case CounterActionTypes.Reset:
             if (action.payload) {
                 return action.payload;
             } else {

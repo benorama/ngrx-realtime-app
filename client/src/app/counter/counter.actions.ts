@@ -1,33 +1,29 @@
-import {Action} from '@ngrx/store';
-import {RemoteAction} from "../shared/remote-action.model";
+import {RemoteAction} from '../shared/remote-action.model';
 
-const COUNTER_ACTIONS_EVENT_BUS_ADDRESS: string = 'counter::actions';
+const COUNTER_ACTIONS_EVENT_BUS_ADDRESS = 'counter::actions';
 
-export const CounterActionTypes = {
-    INCREMENT: '[Counter] Increment',
-    DECREMENT: '[Counter] Decrement',
-    RESET: '[Counter] Reset'
+export enum CounterActionTypes {
+    Increment = '[Counter] Increment',
+    Decrement = '[Counter] Decrement',
+    Reset = '[Counter] Reset'
 };
 
 export class IncrementAction extends RemoteAction {
-    payload: any = null;
-    type = CounterActionTypes.INCREMENT;
+    readonly type = CounterActionTypes.Increment;
     constructor() {
         super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
     }
 }
 
 export class DecrementAction extends RemoteAction {
-    payload: any = null;
-    type = CounterActionTypes.DECREMENT;
+    readonly type = CounterActionTypes.Decrement;
     constructor() {
         super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
     }
 }
 
 export class ResetAction extends RemoteAction {
-    payload: any = null;
-    type = CounterActionTypes.RESET;
+    readonly type = CounterActionTypes.Reset;
     constructor() {
         super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
     }

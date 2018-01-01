@@ -1,24 +1,20 @@
-import '@ngrx/core/add/operator/select';
-import 'rxjs/add/operator/map';
-import {Action} from '@ngrx/store';
-import {Observable} from 'rxjs/Observable';
 import {UserActions, UserActionTypes} from './user.actions';
 import {initialUserState, UserState} from './user.state';
 
 export function userReducer(state = initialUserState, action: UserActions): UserState {
     switch (action.type) {
 
-        case UserActionTypes.CONNECTION_OPENED:
+        case UserActionTypes.ConnectionOpened:
             return Object.assign({}, state, {
                 connected: true
             });
 
-        case UserActionTypes.CONNECTION_CLOSED:
+        case UserActionTypes.ConnectionClosed:
             return Object.assign({}, state, {
                 connected: false
             });
 
-        case UserActionTypes.LOGIN:
+        case UserActionTypes.Login:
             return Object.assign({}, state, {
                 authenticated: true,
                 name: action.payload
