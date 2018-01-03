@@ -8,7 +8,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/observable/of';
 import {AppEventBusService} from './app.event-bus.service';
-import {UserActionTypes} from './user/user.actions';
+import {UserActions} from './user/user.actions';
 import {RemoteAction} from './shared/remote-action.model';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class AppEventBusEffects {
         });
 
     @Effect({dispatch: false}) login$: Observable<Action> = this.actions$
-        .ofType(UserActionTypes.Login)
+        .ofType(UserActions.Types.LOGIN)
         .do(() => {
             this.appEventBusService.connect();
         });

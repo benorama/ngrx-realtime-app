@@ -1,20 +1,20 @@
-import {UserActions, UserActionTypes} from './user.actions';
+import {UserActions} from './user.actions';
 import {initialUserState, UserState} from './user.state';
 
-export function userReducer(state = initialUserState, action: UserActions): UserState {
+export function userReducer(state = initialUserState, action: any): UserState {
     switch (action.type) {
 
-        case UserActionTypes.ConnectionOpened:
+        case UserActions.Types.CONNECTION_OPENED:
             return Object.assign({}, state, {
                 connected: true
             });
 
-        case UserActionTypes.ConnectionClosed:
+        case UserActions.Types.CONNECTION_CLOSED:
             return Object.assign({}, state, {
                 connected: false
             });
 
-        case UserActionTypes.Login:
+        case UserActions.Types.LOGIN:
             return Object.assign({}, state, {
                 authenticated: true,
                 name: action.payload

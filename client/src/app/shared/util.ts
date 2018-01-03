@@ -14,6 +14,7 @@ import {Observable} from 'rxjs/Observable';
  */
 
 let labelCache: { [label: string]: boolean } = {};
+
 export function label<T>(label: T | ''): T {
     if (labelCache[<string>label]) {
         throw new Error(`Action type "${label}" is not unqiue"`);
@@ -30,7 +31,9 @@ export interface SelectorFn<T, V> {
 
 export interface Selector<T, V> extends SelectorFn<T, V> {
     readonly cachedResult?: null | Observable<V>;
+
     reset(): void;
+
     override(source$: Observable<V>): void;
 }
 

@@ -11,7 +11,8 @@
                     </h3>
                     <p class="nav nav-masthead">
                         <span class="user-name">{{(user$ | async)?.name}}</span>
-                        <span class="connected-status" [ngClass]="{'online': (user$ | async)?.connected, 'offline': !(user$ | async)?.connected}"></span>
+                        <span class="connected-status"
+                              [ngClass]="{'online': (user$ | async)?.connected, 'offline': !(user$ | async)?.connected}"></span>
                     </p>
                 </div>
             </div>
@@ -22,7 +23,8 @@
                     <input name="userName" #userName
                            (keyup.enter)="login(userName.value)"/>
                     <button
-                            (click)="login(userName.value)" class="btn btn-primary">Login</button>
+                        (click)="login(userName.value)" class="btn btn-primary">Login
+                    </button>
                 </div>
                 <div *ngIf="(user$ | async).authenticated">
                     <h4>
@@ -44,7 +46,8 @@
 
             <div class="mastfoot">
                 <div class="inner">
-                    <p>Cover template for <a href="https://getbootstrap.com">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+                    <p>Cover template for <a href="https://getbootstrap.com">Bootstrap</a>, by <a
+                        href="https://twitter.com/mdo">@mdo</a>.</p>
                 </div>
             </div>
 

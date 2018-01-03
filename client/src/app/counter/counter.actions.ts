@@ -1,35 +1,44 @@
 import {RemoteAction} from '../shared/remote-action.model';
 
-const COUNTER_ACTIONS_EVENT_BUS_ADDRESS = 'counter::actions';
+export namespace CounterActions {
 
-export enum CounterActionTypes {
-    Increment = '[Counter] Increment',
-    Decrement = '[Counter] Decrement',
-    Reset = '[Counter] Reset'
-};
+    const COUNTER_ACTIONS_EVENT_BUS_ADDRESS = 'counter::actions';
 
-export class IncrementAction extends RemoteAction {
-    readonly type = CounterActionTypes.Increment;
-    constructor() {
-        super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
+    export const Types = {
+        INCREMENT: '[Counter] Increment',
+        DECREMENT: '[Counter] Decrement',
+        RESET: '[Counter] Reset'
+    };
+
+    export class IncrementAction extends RemoteAction {
+        readonly type = Types.INCREMENT;
+
+        constructor() {
+            super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
+        }
     }
+
+    export class DecrementAction extends RemoteAction {
+        readonly type = Types.DECREMENT;
+
+        constructor() {
+            super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
+        }
+    }
+
+    export class ResetAction extends RemoteAction {
+        readonly type = Types.RESET;
+
+        constructor() {
+            super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
+        }
+    }
+
+    export type Actions =
+        IncrementAction
+        | DecrementAction
+        | ResetAction;
+
+
 }
 
-export class DecrementAction extends RemoteAction {
-    readonly type = CounterActionTypes.Decrement;
-    constructor() {
-        super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
-    }
-}
-
-export class ResetAction extends RemoteAction {
-    readonly type = CounterActionTypes.Reset;
-    constructor() {
-        super(COUNTER_ACTIONS_EVENT_BUS_ADDRESS);
-    }
-}
-
-export type CounterActions =
-    IncrementAction
-    | DecrementAction
-    | ResetAction;

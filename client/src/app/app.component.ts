@@ -4,10 +4,10 @@ import {Observable} from 'rxjs/Observable';
 import {Store} from '@ngrx/store';
 
 import {AppState} from './app.state';
-import * as CounterActions from './counter/counter.actions';
-import {CounterState} from "./counter/counter.state";
-import * as UserActions from "./user/user.actions";
-import {UserState} from "./user/user.state";
+import {CounterActions} from './counter/counter.actions';
+import {CounterState} from './counter/counter.state';
+import {UserActions} from './user/user.actions';
+import {UserState} from './user/user.state';
 
 @Component({
     selector: 'app-root',

@@ -1,3 +1,3 @@
 export * from './user.actions';
-export * from './user.reducer';
-export * from './user.state';
+export {userReducer} from './user.reducer';
+export {UserState} from './user.state';

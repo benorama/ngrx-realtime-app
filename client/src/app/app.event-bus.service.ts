@@ -4,11 +4,11 @@ import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/map';
 
 import {AppState} from './app.state';
-import * as CounterActions from './counter/counter.actions';
-import * as UserActions from "./user/user.actions";
+import {CounterActions} from './counter/counter.actions';
+import {UserActions} from './user/user.actions';
 import {EventBusService} from './shared/event-bus.service';
-import {RemoteAction} from "./shared/remote-action.model";
-import {environment} from "../environments/environment";
+import {RemoteAction} from './shared/remote-action.model';
+import {environment} from '../environments/environment';
 
 @Injectable()
 export class AppEventBusService {
@@ -18,13 +18,13 @@ export class AppEventBusService {
     constructor(private eventBusService: EventBusService,
                 private store: Store<AppState>) {
         this.store.select(s => s.user.name)
-        //.distinctUntilChanged()
+            // .distinctUntilChanged()
             .subscribe(name => this.currentUser = name);
     }
 
     connect() {
         if (!this.enabled) {
-            console.debug("AppEventBusService.connect - Disabled ");
+            console.debug('AppEventBusService.connect - Disabled ');
         }
 
         // Subscribe to close event
@@ -41,7 +41,7 @@ export class AppEventBusService {
             this.store.dispatch(new UserActions.ConnectionOpenedAction());
         });
         // Connect
-        console.debug("AppEventBusService.connect " + environment.eventBusURL);
+        console.debug('AppEventBusService.connect ' + environment.eventBusURL);
         this.eventBusService.connect(environment.eventBusURL, this.buildHeaders());
     }
 
@@ -54,19 +54,21 @@ export class AppEventBusService {
     }
 
     get enabled(): boolean {
-        return environment.eventBusURL && environment.eventBusURL != '';
+        return environment.eventBusURL && environment.eventBusURL !== '';
     }
 
     /**
      *
      */
     initializeCounter() {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            return;
+        }
         if (this.connected) {
-            let body: any = {};
+            const body: any = {};
             this.eventBusService.send('counter::total', body, (error, message) => {
                 if (message && message.body) {
-                    let localAction = new CounterActions.ResetAction();
+                    const localAction = new CounterActions.ResetAction();
                     localAction.payload = message.body;
                     this.store.dispatch(localAction);
                 }
@@ -82,9 +84,11 @@ export class AppEventBusService {
      * @param action
      */
     publishAction(action: RemoteAction) {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            return;
+        }
         if (action.publishedByUser) {
-            console.error("This action has already been published", action);
+            console.error('This action has already been published', action);
             return;
         }
         action.publishedByUser = this.currentUser;
@@ -96,7 +100,9 @@ export class AppEventBusService {
      * @param eventBusAddress
      */
     subscribeToActions(eventBusAddress: string) {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            return;
+        }
         this.eventBusService.registerHandler(eventBusAddress, (error, message) => {
             if (error) {
                 console.error('AppEventBusService.handleAction error', error);
@@ -110,7 +116,7 @@ export class AppEventBusService {
                 // Ignore action sent by current manager
                 return;
             }
-            let remoteAction = message.body;
+            const remoteAction = message.body;
             this.store.dispatch(remoteAction);
         });
     }

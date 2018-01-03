@@ -1,3 +1,3 @@
 export * from './counter.actions';
-export * from './counter.reducer';
-export * from './counter.state';
+export {counterReducer} from './counter.reducer';
+export {CounterState} from './counter.state';
