@@ -25,12 +25,12 @@
         "@angular/platform-browser": "5.1.2",
         "@angular/platform-browser-dynamic": "5.1.2",
         "@angular/router": "5.1.2",
-        "@ngrx/effects": "4.1.1",
-        "@ngrx/store": "4.1.1",
-        "@ngrx/store-devtools": "4.1.1",
         "core-js": "2.4.1",
         "rxjs": "5.5.2",
-        "zone.js": "0.8.14"
+        "zone.js": "0.8.18",
+        "@ngrx/effects": "4.1.1",
+        "@ngrx/store": "4.1.1",
+        "@ngrx/store-devtools": "4.1.1"
     },
     "devDependencies": {
         "@angular/cli": "1.5.5",
