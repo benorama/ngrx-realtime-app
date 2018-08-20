@@ -18,6 +18,7 @@ export class AppEventBusService {
         this.store.select(s => s.user.name)
             // .distinctUntilChanged()
             .subscribe(name => this.currentUser = name);
+        this.eventBusService.enableReconnect(true);
     }
 
     connect() {
@@ -37,6 +38,9 @@ export class AppEventBusService {
             this.initializeCounter();
 
             this.store.dispatch(new UserActions.ConnectionOpenedAction());
+        });
+        this.eventBusService.reconnect.subscribe(() => {
+            console.debug('AppEventBusService.reconnect');
         });
         // Connect
         console.debug('AppEventBusService.connect ' + environment.eventBusURL);

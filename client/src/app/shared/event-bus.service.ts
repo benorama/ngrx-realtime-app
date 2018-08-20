@@ -4,26 +4,30 @@
  */
 
 import {EventEmitter, Injectable} from '@angular/core';
-import * as SockJS from 'sockjs-client';
+// We removed sockjs-client dependencies to workaround compilation issue, so the following must be added to index.html
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.5/sockjs.min.js"></script>
+// import * as SockJS from 'sockjs-client';
+declare var SockJS;
 
 @Injectable()
 export class EventBusService {
 
-    static initialized: boolean = false;
-    static MAX_EVENT_QUEUE_SIZE: number = 100;
-    static STATE_CONNECTING: number = 0;
-    static STATE_OPEN: number = 1;
-    static STATE_CLOSING: number = 2;
-    static STATE_CLOSED: number = 3;
-    static TYPE_PUBLISH: string = 'publish';
-    static TYPE_SEND: string = 'send';
-    static TYPE_REGISTER: string = 'register';
-    static TYPE_REGISTER_HANDLER: string = 'registerHandler';
-    static TYPE_UNREGISTER: string = 'unregister';
-    static TYPE_UNREGISTER_HANDLER: string = 'unregisterHandler';
+    static initialized = false;
+    static MAX_EVENT_QUEUE_SIZE = 100;
+    static STATE_CONNECTING = 0;
+    static STATE_OPEN = 1;
+    static STATE_CLOSING = 2;
+    static STATE_CLOSED = 3;
+    static TYPE_PUBLISH = 'publish';
+    static TYPE_SEND = 'send';
+    static TYPE_REGISTER = 'register';
+    static TYPE_REGISTER_HANDLER = 'registerHandler';
+    static TYPE_UNREGISTER = 'unregister';
+    static TYPE_UNREGISTER_HANDLER = 'unregisterHandler';
 
     public close: EventEmitter<any> = new EventEmitter<any>();
     public open: EventEmitter<any> = new EventEmitter<any>();
+    public reconnect: EventEmitter<any> = new EventEmitter<any>();
 
     private defaultHeaders: any;
     private eventQueue: QueuedEvent[];
@@ -31,6 +35,18 @@ export class EventBusService {
     private replyHandlers: any = {};
     private sockJS;
     private state: number;
+
+    private pingInterval = 5000;
+    private pingTimerID = null;
+
+    private maxReconnectAttempts = Infinity;
+    private randomizationFactor = 0.5;
+    private reconnectAttempts = 0;
+    private reconnectDelayMax = 5000;
+    private reconnectDelayMin = 1000;
+    private reconnectEnabled = false;
+    private reconnectExponent = 2;
+    private reconnectTimerID = null;
 
     constructor() {
         if (EventBusService.initialized) {
@@ -44,92 +60,139 @@ export class EventBusService {
     }
 
     connect(url: string, defaultHeaders: any = null, options: any = {}): void {
-        let pingInterval = options.vertxbus_ping_interval || 5000;
-        let pingTimerID;
+        this.pingInterval = options.vertxbus_ping_interval || 5000;
+
+        this.maxReconnectAttempts = options.vertxbus_reconnect_attempts_max || Infinity;
+        this.randomizationFactor = options.vertxbus_randomization_factor || 0.5;
+        this.reconnectAttempts = 0;
+        this.reconnectDelayMax = options.vertxbus_reconnect_delay_max || 5000;
+        this.reconnectDelayMin = options.vertxbus_reconnect_delay_min || 1000;
+        this.reconnectExponent = options.vertxbus_reconnect_exponent || 2;
+        this.reconnectTimerID = null;
 
         this.defaultHeaders = defaultHeaders;
         this.eventQueue = [];
         this.handlers = {};
         this.replyHandlers = {};
-        this.sockJS = new SockJS(url, null, options);
-        this.state = EventBusService.STATE_CONNECTING;
 
-        let sendPing = () => {
-            this.sockJS.send(JSON.stringify({type: 'ping'}));
-        };
+        const setupConnection = () => {
+            this.sockJS = new SockJS(url, null, options);
+            this.state = EventBusService.STATE_CONNECTING;
 
-        this.sockJS.onopen = () => {
-            this.state = EventBusService.STATE_OPEN;
-            // Send the first ping then send a ping every pingInterval milliseconds
-            sendPing();
-            this.flushEventQueue();
-            pingTimerID = setInterval(sendPing, pingInterval);
-            this.open.emit(null);
-        };
+            this.sockJS.onopen = () => {
+                this.state = EventBusService.STATE_OPEN;
+                this.enablePing(true);
+                this.flushEventQueue();
+                this.open.emit(null);
+                if (this.reconnectTimerID) {
+                    this.reconnectAttempts = 0;
+                    // fire separate event for reconnects
+                    // consistent behavior with adding handlers onopen
+                    this.reconnect.emit(null);
+                }
+            };
 
-        this.sockJS.onclose = (e) => {
-            this.state = EventBusService.STATE_CLOSED;
-            if (pingTimerID) clearInterval(pingTimerID);
-            this.close.emit(null);
-        };
+            this.sockJS.onclose = (e) => {
+                this.state = EventBusService.STATE_CLOSED;
+                this.enablePing(false);
+                if (this.reconnectEnabled && this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.sockJS = null;
+                    // set id so users can cancel
+                    this.reconnectTimerID = setTimeout(setupConnection, this.getReconnectDelay());
+                    ++this.reconnectAttempts;
+                }
+                this.close.emit(null);
+            };
 
-        this.sockJS.onmessage = (e) => {
-            let json = JSON.parse(e.data);
+            this.sockJS.onmessage = (e) => {
+                const json = JSON.parse(e.data);
 
-            // define a reply function on the message itself
-            if (json.replyAddress) {
-                Object.defineProperty(json, 'reply', {
-                    value: function (message, headers, callback) {
-                        this.send(json.replyAddress, message, headers, callback);
+                // define a reply function on the message itself
+                if (json.replyAddress) {
+                    Object.defineProperty(json, 'reply', {
+                        value: function (message, headers, callback) {
+                            this.send(json.replyAddress, message, headers, callback);
+                        }
+                    });
+                }
+
+                if (this.handlers[json.address]) {
+                    // iterate all registered handlers
+                    const handlers = this.handlers[json.address];
+                    for (let i = 0; i < handlers.length; i++) {
+                        if (json.type === 'err') {
+                            handlers[i]({
+                                failureCode: json.failureCode,
+                                failureType: json.failureType,
+                                message: json.message
+                            });
+                        } else {
+                            handlers[i](null, json);
+                        }
                     }
-                });
-            }
-
-            if (this.handlers[json.address]) {
-                // iterate all registered handlers
-                let handlers = this.handlers[json.address];
-                for (let i = 0; i < handlers.length; i++) {
+                } else if (this.replyHandlers[json.address]) {
+                    // Might be a reply message
+                    const handler = this.replyHandlers[json.address];
+                    delete this.replyHandlers[json.address];
                     if (json.type === 'err') {
-                        handlers[i]({
-                            failureCode: json.failureCode,
-                            failureType: json.failureType,
-                            message: json.message
-                        });
+                        handler({failureCode: json.failureCode, failureType: json.failureType, message: json.message});
                     } else {
-                        handlers[i](null, json);
-                    }
-                }
-            } else if (this.replyHandlers[json.address]) {
-                // Might be a reply message
-                let handler = this.replyHandlers[json.address];
-                delete this.replyHandlers[json.address];
-                if (json.type === 'err') {
-                    handler({failureCode: json.failureCode, failureType: json.failureType, message: json.message});
-                } else {
-                    handler(null, json);
-                }
-            } else {
-                if (json.type === 'err') {
-                    try {
-                        console.error(json);
-                    } catch (e) {
-                        // dev tools are disabled so we cannot use console on IE
+                        handler(null, json);
                     }
                 } else {
-                    try {
-                        console.warn('No handler found for message: ', json);
-                    } catch (e) {
-                        // dev tools are disabled so we cannot use console on IE
+                    if (json.type === 'err') {
+                        try {
+                            console.error(json);
+                        } catch (e) {
+                            // dev tools are disabled so we cannot use console on IE
+                        }
+                    } else {
+                        try {
+                            console.warn('No handler found for message: ', json);
+                        } catch (e) {
+                            // dev tools are disabled so we cannot use console on IE
+                        }
                     }
                 }
-            }
+            };
         };
+
+        setupConnection();
     }
 
     disconnect() {
         if (this.sockJS) {
             this.state = EventBusService.STATE_CLOSING;
+            this.enableReconnect(false);
             this.sockJS.close();
+        }
+    }
+
+    enableReconnect(enabled) {
+        this.reconnectEnabled = enabled;
+        if (!enabled && this.reconnectTimerID) {
+            clearTimeout(this.reconnectTimerID);
+            this.reconnectTimerID = null;
+            this.reconnectAttempts = 0;
+        }
+    }
+
+    enablePing(enabled) {
+        if (enabled) {
+            const sendPing = () => {
+                this.sockJS.send(JSON.stringify({type: 'ping'}));
+            };
+
+            if (this.pingInterval > 0) {
+                // Send the first ping then send a ping every pingInterval milliseconds
+                sendPing();
+                this.pingTimerID = setInterval(sendPing, this.pingInterval);
+            }
+        } else {
+            if (this.pingTimerID) {
+                clearInterval(this.pingTimerID);
+                this.pingTimerID = null;
+            }
         }
     }
 
@@ -144,7 +207,7 @@ export class EventBusService {
             body: any,
             headers?: any) {
         if (this.connected) {
-            let message: any = {
+            const message: any = {
                 address: address,
                 body: body,
                 headers: mergeHeaders(this.defaultHeaders, headers),
@@ -155,7 +218,7 @@ export class EventBusService {
         } else {
             this.addEventToQueue({address, body, type: EventBusService.TYPE_PUBLISH});
         }
-    };
+    }
 
     /**
      * Send a message
@@ -170,7 +233,7 @@ export class EventBusService {
             replyHandler?: Function,
             headers?: any): void {
         if (this.connected) {
-            let message: any = {
+            const message: any = {
                 address: address,
                 body: body,
                 headers: mergeHeaders(this.defaultHeaders, headers),
@@ -178,7 +241,7 @@ export class EventBusService {
             };
 
             if (replyHandler) {
-                let replyAddress = makeUUID();
+                const replyAddress = makeUUID();
                 message.replyAddress = replyAddress;
                 this.replyHandlers[replyAddress] = replyHandler;
             }
@@ -187,7 +250,7 @@ export class EventBusService {
         } else {
             this.addEventToQueue({address, handler: replyHandler, body, type: EventBusService.TYPE_SEND});
         }
-    };
+    }
 
     /*sendWithTimeout<T>(address: string, message: any, timeout: number, replyHandler?: Function): EventBus {
      return this.eventBus.sendWithTimeout(address, message, replyHandler);
@@ -204,7 +267,7 @@ export class EventBusService {
     register<T>(address: string,
                 headers?: any): void {
         if (this.connected) {
-            let envelope: any = {
+            const envelope: any = {
                 address: address,
                 headers: mergeHeaders(this.defaultHeaders, headers),
                 type: EventBusService.TYPE_REGISTER
@@ -236,7 +299,7 @@ export class EventBusService {
         } else {
             this.addEventToQueue({address, handler, type: EventBusService.TYPE_REGISTER_HANDLER});
         }
-    };
+    }
 
     /**
      *
@@ -246,7 +309,7 @@ export class EventBusService {
     unregister<T>(address: string,
                   headers?: any): void {
         if (this.connected) {
-            let envelope: any = {
+            const envelope: any = {
                 address: address,
                 headers: mergeHeaders(this.defaultHeaders, headers),
                 type: EventBusService.TYPE_UNREGISTER
@@ -269,11 +332,11 @@ export class EventBusService {
                          handler: Function,
                          headers?: any): void {
         if (this.connected) {
-            let handlers = this.handlers[address];
+            const handlers = this.handlers[address];
 
             if (handlers) {
-                let idx = handlers.indexOf(handler);
-                if (idx != -1) {
+                const idx = handlers.indexOf(handler);
+                if (idx !== -1) {
                     handlers.splice(idx, 1);
                     if (handlers.length === 0) {
                         // No more local handlers so we should unregister the connection
@@ -284,7 +347,7 @@ export class EventBusService {
         } else {
             this.addEventToQueue({address, handler, type: EventBusService.TYPE_UNREGISTER});
         }
-    };
+    }
 
     // PRIVATE
 
@@ -299,12 +362,22 @@ export class EventBusService {
         }
     }
 
+    private getReconnectDelay() {
+        let ms = this.reconnectDelayMin * Math.pow(this.reconnectExponent, this.reconnectAttempts);
+        if (this.randomizationFactor) {
+            const rand =  Math.random();
+            const deviation = Math.floor(rand * this.randomizationFactor * ms);
+            ms = (Math.floor(rand * 10) & 1) === 0  ? ms - deviation : ms + deviation;
+        }
+        return Math.min(ms, this.reconnectDelayMax) | 0;
+    }
+
     private flushEventQueue() {
         if (!this.connected) {
             return;
         }
         while (this.eventQueue.length > 0) {
-            let event: QueuedEvent = this.eventQueue.shift();
+            const event: QueuedEvent = this.eventQueue.shift();
             switch (event.type) {
                 case EventBusService.TYPE_PUBLISH:
                     this.publish(event.address, event.body);
@@ -331,7 +404,7 @@ interface QueuedEvent {
 
 function makeUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (a, b) {
-        return b = Math.random() * 16, (a == 'y' ? b & 3 | 8 : b | 0).toString(16);
+        return b = Math.random() * 16, (a === 'y' ? b & 3 | 8 : b | 0).toString(16);
     });
 }
 
@@ -341,7 +414,7 @@ function mergeHeaders(defaultHeaders, headers) {
             return defaultHeaders;
         }
 
-        for (let headerName in defaultHeaders) {
+        for (const headerName in defaultHeaders) {
             if (defaultHeaders.hasOwnProperty(headerName)) {
                 // user can overwrite the default headers
                 if (typeof headers[headerName] === 'undefined') {
