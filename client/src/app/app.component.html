@@ -1,58 +1,65 @@
-<div class="site-wrapper">
-
-    <div class="site-wrapper-inner">
-
-        <div class="cover-container">
-
-            <div class="masthead clearfix">
-                <div class="inner">
-                    <h3 class="masthead-brand">
-                        Ngrx/Angular Realtime App
-                    </h3>
-                    <p class="nav nav-masthead">
-                        <span class="user-name">{{(user$ | async)?.name}}</span>
-                        <span class="connected-status"
-                              [ngClass]="{'online': (user$ | async)?.connected, 'offline': !(user$ | async)?.connected}"></span>
-                    </p>
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column text-center">
+    <header class="masthead mb-auto">
+        <div class="inner">
+            <h3 class="masthead-brand">Angular/Ngrx Realtime App</h3>
+            <div class="d-flex flex-row-reverse bd-highlight">
+                <div class="p-2">
+                    <span class="connected-status"
+                          [ngClass]="{'online': (user$ | async)?.connected, 'offline': !(user$ | async)?.connected}"></span>
+                </div>
+                <div class="p-2">
+                    <span class="user-name">{{(user$ | async)?.name}}</span>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <div class="inner cover">
-
-                <div *ngIf="!(user$ | async)?.authenticated">
-                    <input name="userName" #userName
+    <main role="main" class="inner cover">
+        <!-- <h1 class="cover-heading">Cover your page.</h1>
+        <div *ngIf="!(user$ | async)?.authenticated">
+            <input name="userName" #userName
+                   (keyup.enter)="login(userName.value)"/>
+            <button
+                (click)="login(userName.value)" class="btn btn-primary">Login
+            </button>
+        </div> -->
+        <div class="d-flex justify-content-center"
+             *ngIf="!(user$ | async)?.authenticated">
+            <form id="loginForm" class="form-inline">
+                <div class="form-group mx-sm-3">
+                    <input class="form-control"
+                           name="userName" #userName
+                           type="text"
                            (keyup.enter)="login(userName.value)"/>
-                    <button
-                        (click)="login(userName.value)" class="btn btn-primary">Login
-                    </button>
                 </div>
-                <div *ngIf="(user$ | async).authenticated">
-                    <h4>
-                        Counter example
-                    </h4>
-                    <h1>
-                        {{(counter$ | async)?.total}}
-                    </h1>
-                    <p>
-                        <button (click)="increment()" class="btn btn-primary">+1</button>
-                        <button (click)="decrement()" class="btn btn-primary">-1</button>
-                    </p>
-                    <p>
-                        <button (click)="reset()" class="btn btn-secondary btn-sm">Reset</button>
-                    </p>
-                </div>
-
-            </div>
-
-            <div class="mastfoot">
-                <div class="inner">
-                    <p>Cover template for <a href="https://getbootstrap.com">Bootstrap</a>, by <a
-                        href="https://twitter.com/mdo">@mdo</a>.</p>
-                </div>
-            </div>
+                <button class="btn btn-primary"
+                        type="submit"
+                        (click)="login(userName.value)">
+                    Login
+                </button>
+            </form>
 
         </div>
+        <ng-template [ngIf]="(user$ | async).authenticated">
+            <h4>
+                Counter example
+            </h4>
+            <h1>
+                {{(counter$ | async)?.total}}
+            </h1>
+            <p class="lead">
+                <button (click)="increment()" class="btn btn-primary mr-3">+1</button>
+                <button (click)="decrement()" class="btn btn-primary">-1</button>
+            </p>
+            <p>
+                <button (click)="reset()" class="btn btn-secondary btn-sm">Reset</button>
+            </p>
+        </ng-template>
+    </main>
 
-    </div>
-
+    <footer class="mastfoot mt-auto">
+        <div class="inner">
+            <p>Cover template for <a href="https://getbootstrap.com/">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+        </div>
+    </footer>
 </div>

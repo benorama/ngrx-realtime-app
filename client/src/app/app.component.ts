@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, HostBinding} from '@angular/core';
 
 import {Observable} from 'rxjs';
 import {select, Store} from '@ngrx/store';
@@ -14,6 +14,8 @@ import {UserState} from './user/user.state';
     templateUrl: './app.component.html'
 })
 export class AppComponent {
+
+    @HostBinding('attr.class') class = 'mx-auto';
 
     counter$: Observable<CounterState>;
     user$: Observable<UserState>;
