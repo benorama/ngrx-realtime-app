@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 
-import {Observable} from 'rxjs/Observable';
-import {Store} from '@ngrx/store';
+import {Observable} from 'rxjs';
+import {select, Store} from '@ngrx/store';
 
 import {AppState} from './app.state';
 import {CounterActions} from './counter/counter.actions';
@@ -19,8 +19,8 @@ export class AppComponent {
     user$: Observable<UserState>;
 
     constructor(private store: Store<AppState>) {
-        this.counter$ = this.store.select(s => s.counter);
-        this.user$ = this.store.select(s => s.user);
+        this.counter$ = this.store.pipe(select('counter'));
+        this.user$ = this.store.pipe(select('user'));
     }
 
     decrement() {

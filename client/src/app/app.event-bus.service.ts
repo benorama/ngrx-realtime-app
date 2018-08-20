@@ -1,7 +1,5 @@
 import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
-import 'rxjs/add/observable/interval';
-import 'rxjs/add/operator/map';
 
 import {AppState} from './app.state';
 import {CounterActions} from './counter/counter.actions';
@@ -126,7 +124,9 @@ export class AppEventBusService {
      * @param eventBusAddress
      */
     unsubscribeFromActions(eventBusAddress: string) {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            return;
+        }
         this.eventBusService.unregister(eventBusAddress);
     }
 
