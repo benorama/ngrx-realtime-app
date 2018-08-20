@@ -1,5 +1,5 @@
-import {CounterState} from './counter';
-import {UserState} from './user';
+import {CounterState} from './counter/counter.state';
+import {UserState} from './user/user.state';
 
 export interface AppState {
     counter: CounterState;
