@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Action} from '@ngrx/store';
-import {Effect, Actions, ofType} from '@ngrx/effects';
+import {Actions, Effect, ofType} from '@ngrx/effects';
 import {Observable} from 'rxjs';
 import {filter, tap} from 'rxjs/operators';
 

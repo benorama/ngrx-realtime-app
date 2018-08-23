@@ -365,9 +365,9 @@ export class EventBusService {
     private getReconnectDelay() {
         let ms = this.reconnectDelayMin * Math.pow(this.reconnectExponent, this.reconnectAttempts);
         if (this.randomizationFactor) {
-            const rand =  Math.random();
+            const rand = Math.random();
             const deviation = Math.floor(rand * this.randomizationFactor * ms);
-            ms = (Math.floor(rand * 10) & 1) === 0  ? ms - deviation : ms + deviation;
+            ms = (Math.floor(rand * 10) & 1) === 0 ? ms - deviation : ms + deviation;
         }
         return Math.min(ms, this.reconnectDelayMax) | 0;
     }

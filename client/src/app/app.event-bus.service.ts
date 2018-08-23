@@ -16,7 +16,7 @@ export class AppEventBusService {
     constructor(private eventBusService: EventBusService,
                 private store: Store<AppState>) {
         this.store.select(s => s.user.name)
-            // .distinctUntilChanged()
+        // .distinctUntilChanged()
             .subscribe(name => this.currentUser = name);
         this.eventBusService.enableReconnect(true);
     }

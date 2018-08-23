@@ -19,7 +19,6 @@ a:hover {
     border: .05rem solid #fff;
 }
 
-
 /*
  * Base structure
  */
@@ -41,7 +40,6 @@ body {
 .cover-container {
     max-width: 42em;
 }
-
 
 /*
  * Header
@@ -80,11 +78,11 @@ body {
     .masthead-brand {
         float: left;
     }
+
     .nav-masthead {
         float: right;
     }
 }
-
 
 /*
  * Cover
@@ -92,11 +90,11 @@ body {
 .cover {
     padding: 0 1.5rem;
 }
+
 .cover .btn-lg {
     padding: .75rem 1.25rem;
     font-weight: 700;
 }
-
 
 /*
  * Footer
