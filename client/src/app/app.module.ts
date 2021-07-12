@@ -20,7 +20,11 @@ import {EventBusService} from './shared/event-bus.service';
     ],
     imports: [
         BrowserModule,
-        StoreModule.forRoot(reducers),
+        StoreModule.forRoot(reducers, {
+            runtimeChecks: {
+                strictActionImmutability: false
+            }
+        }),
         EffectsModule.forRoot([AppEventBusEffects]),
         !environment.production ? StoreDevtoolsModule.instrument({maxAge: 25}) : []
     ],
