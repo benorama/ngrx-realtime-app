@@ -1,42 +1,163 @@
 plugins {
-    id 'groovy'
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'org.kordamp.gradle.groovy-project'
+    id 'org.kordamp.gradle.checkstyle'
+    id 'org.kordamp.gradle.codenarc'
+    id 'org.kordamp.gradle.coveralls'
 }
 
-ext {
-    vertxVersion = '3.5.0'
-}
+config {
+    release = (rootProject.findProperty('release') ?: false).toBoolean()
 
-repositories {
-    mavenLocal()
-    jcenter()
-    maven { url "https://plugins.gradle.org/m2/" }
-}
+    info {
+        name        = 'Live'
+        vendor      = 'Agorapulse'
+        description = 'Live Event Bus'
 
-version = '1.0.1'
-sourceCompatibility = '1.8'
+        links {
+            website      = 'https://github.com/' + slug
+            issueTracker = 'https://github.com/' + slug + '/issues'
+            scm          = 'https://github.com/' + slug + '.git'
+        }
 
-dependencies {
-    compile "io.vertx:vertx-core:$vertxVersion"
-    compile "io.vertx:vertx-lang-groovy:$vertxVersion"
-    compile "io.vertx:vertx-web:$vertxVersion"
-}
+        people {
+            person {
+                id    = 'ladin'
+                name  = 'Vladimir Orany'
+                roles = ['developer']
+            }
+        }
 
-processResources {
-    from 'src/main/groovy'
-}
-
-shadowJar {
-    classifier = 'fat'
-    manifest {
-        attributes 'Main-Class': 'io.vertx.core.Launcher'
-        attributes 'Main-Verticle': 'CounterVerticle.groovy'
+        repositories {
+            repository {
+                credentials {
+                    username = 'deployer'
+                    password = System.getenv('DEPLOYER_PASSWORD')
+                }
+                name = 'artifactory-releases'
+                url = 'https://agorapulse.jfrog.io/agorapulse/libs-releases-local/'
+            }
+            repository {
+                credentials {
+                    username = 'deployer'
+                    password = System.getenv('DEPLOYER_PASSWORD')
+                }
+                name = 'artifactory-snapshots'
+                url = 'https://agorapulse.jfrog.io/agorapulse/libs-snapshots-local/'
+            }
+        }
     }
-    mergeServiceFiles {
-        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+
+    licensing {
+        enabled = false
+    }
+
+    publishing {
+        enabled             = false
+        signing             = false
+        releasesRepository  = 'artifactory-releases'
+        snapshotsRepository = 'artifactory-snapshots'
+    }
+
+    quality {
+        checkstyle {
+            toolVersion = '8.27'
+        }
+
+        codenarc {
+            toolVersion = '1.5'
+        }
+    }
+
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url "https://repo.spring.io/release"  }
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+projects {
+    subprojects {
+        dirs(['apps']) { Project subproject ->
+            sourceCompatibility = 1.8
+            targetCompatibility = 1.8
+
+            repositories {
+                repositories {
+                    final String AGORAPULSE_REGEX = "(com\\.)?agorapulse(\\..*)?"
+
+                    // generic
+                    mavenCentral()
+
+                    maven {
+                        credentials {
+                            username 'developer'
+                            password 'ceug-bec-nash-va'
+                        }
+
+                        url "https://agorapulse.jfrog.io/agorapulse/libs-releases-local/"
+
+                        content {
+                            includeGroupByRegex AGORAPULSE_REGEX
+                            includeGroup 'com.google' // We host com.google:google-api-services-mybusiness-v4:1.25.0
+                            includeGroup 'org.twitter4j' // We host custom Twitter4J version
+                        }
+                    }
+                }
+            }
+
+            // location independent tests (useful for stable CI builds)
+            tasks.withType(Test){
+                systemProperty 'user.timezone', 'UTC'
+                systemProperty 'user.language', 'en'
+            }
+
+            tasks.withType(JavaCompile) {
+                options.encoding = "UTF-8"
+                options.compilerArgs.add('-parameters')
+            }
+
+            tasks.withType(GroovyCompile) {
+                groovyOptions.forkOptions.jvmArgs.add('-Dgroovy.parameters=true')
+            }
+
+            dependencies {
+                api platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+                compile platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+                implementation platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+                compileOnly platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+                testCompile platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+                testImplementation platform("org.codehaus.groovy:groovy-bom:$groovyVersion")
+
+                api platform("io.micronaut:micronaut-bom:$micronautVersion")
+                compile platform("io.micronaut:micronaut-bom:$micronautVersion")
+                implementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+                compileOnly platform("io.micronaut:micronaut-bom:$micronautVersion")
+                testCompile platform("io.micronaut:micronaut-bom:$micronautVersion")
+                testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+
+                api platform("com.agorapulse:agorapulse-bom:$agorapulseBomVersion")
+                compile platform("com.agorapulse:agorapulse-bom:$agorapulseBomVersion")
+                implementation platform("com.agorapulse:agorapulse-bom:$agorapulseBomVersion")
+                compileOnly platform("com.agorapulse:agorapulse-bom:$agorapulseBomVersion")
+                testCompile platform("com.agorapulse:agorapulse-bom:$agorapulseBomVersion")
+                testImplementation platform("com.agorapulse:agorapulse-bom:$agorapulseBomVersion")
+
+                testImplementation group: 'org.spockframework', name: 'spock-core', version: spockVersion
+                testImplementation 'net.bytebuddy:byte-buddy:1.10.6'
+                testImplementation "org.objenesis:objenesis:3.1"
+            }
+
+            // useful for IntelliJ
+            task cleanOut(type: Delete) {
+                delete file('out')
+            }
+
+            clean.dependsOn cleanOut
+        }
+    }
 }
+
+
+check.dependsOn('aggregateCheckstyle', 'aggregateCodenarc', 'aggregateAllTestReports', 'coveralls')
