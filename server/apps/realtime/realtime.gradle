@@ -1,0 +1,69 @@
+apply plugin:"com.github.johnrengelman.shadow"
+apply plugin:"application"
+apply plugin:"groovy"
+
+dependencies {
+    compileOnly "io.micronaut:micronaut-inject-groovy"
+
+    compile "io.micronaut.redis:micronaut-redis-lettuce"
+
+    implementation 'io.sentry:sentry-logback:1.7.30'
+
+    implementation "com.agorapulse:micronaut-log4aws"
+
+    implementation "io.micronaut:micronaut-management"
+    implementation "io.micronaut:micronaut-runtime-groovy:2.0.0.M2"
+    implementation "io.micronaut:micronaut-validation"
+    implementation "io.micronaut:micronaut-http-server-netty"
+    implementation "io.micronaut:micronaut-http-client"
+
+    testCompile 'com.agorapulse.testing:fixt'
+    testImplementation("org.spockframework:spock-core") {
+        exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }
+    testImplementation "io.micronaut:micronaut-inject-groovy"
+    testImplementation "io.micronaut.test:micronaut-test-spock"
+    testImplementation "io.micronaut.test:micronaut-test-junit5"
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:5.5.0"
+}
+
+mainClassName = "agorapulse.realtime.Application"
+tasks.withType(GroovyCompile) {
+    groovyOptions.forkOptions.jvmArgs.add('-Dgroovy.parameters=true')
+}
+
+test {
+    /**
+     * If there is no useJUnitPlatform(), Gradle (and IntelliJ) does not see any tests to execute
+     * after upgrading Spock 1.3 to Spock 2.0. (https://blog.solidsoft.pl/2020/01/02/migrating-spock-1.3-tests-to-spock-2.0/#gradle)
+     */
+    useJUnitPlatform()
+}
+
+shadowJar {
+    archiveName = 'live.jar'
+    mergeServiceFiles()
+    mergeGroovyExtensionModules()
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
+}
+
+run {
+    logger.lifecycle("${project.name} will be available for debugging at 5996")
+    jvmArgs('-noverify', '-XX:TieredStopAtLevel=1', '-Xdebug',"-Xrunjdwp:transport=dt_socket,address=5996,server=y,suspend=n", "-Dmicronaut.environments=local")
+}
+
+task bootRun(dependsOn: run)
+
+
+tasks.withType(JavaExec) {
+    //systemProperty 'micronaut.config.files', new File("${System.getProperty('user.home')}/.grails/ap-config.yml")
+}
+
+task beanstalkArchive(type: Zip, dependsOn: jar) {
+    from 'src/main/eb', {
+        filter { String line ->
+            line.replace('%LIVE_VERSION%', project.version)
+        }
+    }
+    from tasks.shadowJar
+}
