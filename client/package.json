@@ -30,7 +30,7 @@
         "@ngrx/store": "10.1.0"
     },
     "devDependencies": {
-        "@angular-devkit/build-angular": "~0.1100.3",
+        "@angular-devkit/build-angular": "~15.0.4",
         "@angular/cli": "^11.0.3",
         "@angular/compiler-cli": "~11.0.3",
         "@angular/language-service": "~11.0.3",
